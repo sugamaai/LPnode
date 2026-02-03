@@ -1,0 +1,62 @@
+body {
+    font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    padding: 16px;
+}
+
+h2 {
+    margin: 0 0 12px;
+}
+
+.search-area {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+#searchInput {
+    padding: 8px 10px;
+    font-size: 14px;
+    min-width: 240px;
+}
+
+.filters {
+    margin: 0 0 12px;
+}
+
+.filters select {
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+#itemList {
+    margin: 0;
+    padding-left: 18px;
+}
+
+#itemList li {
+    margin: 6px 0;
+    list-style: none;
+}
+
+#itemList a {
+    text-decoration: none;
+}
+
+#itemList a:hover {
+    text-decoration: underline;
+}
+
+/* 初期表示や状態メッセージ */
+#hint {
+    margin: 8px 0 0;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.result-count {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 500;
+}

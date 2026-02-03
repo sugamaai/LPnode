@@ -1,0 +1,14 @@
+.campaign__list__wrap {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    /* 折り返し */
+    gap: 0px;
+    /* 任意：余白 */
+}
+
+@media (max-width: 640px) {
+    .campaign__list__wrap>details {
+        flex: 0 0 100%;
+    }
+}

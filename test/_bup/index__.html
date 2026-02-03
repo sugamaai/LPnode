@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="iAEON,AEONPay,AEON,アイイオン,イオンペイ,WAONPOINT,ワオンポイント,WAON,ワオン,イオンのアプリ,スマホ決済,友だち紹介">
+    <meta name="description"
+        content="紹介コードをお友だちや家族にシェアし、紹介された方がコードを使ってiAEONに新規会員登録すると紹介した方された方それぞれにもれなく50WAON POINTプレゼント。また当月中に5件達成で100WAON POINT、10件達成でさらに200WAON POINTプレゼント。※毎月最大10件（800WAON POINT）まで紹介可能">
+    <meta property="og:url" content="https://www.aeon.com/aeonapp/campaign/202503_friendprogram/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="../../../aeonapp/campaign/202503_friendprogram/img/ogp.webp">
+    <meta property="og:title" content="検索 | iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ">
+    <meta property="og:description"
+        content="紹介コードをお友だちや家族にシェアし、紹介された方がコードを使ってiAEONに新規会員登録すると紹介した方された方それぞれにもれなく50WAON POINTプレゼント。また当月中に5件達成で100WAON POINT、10件達成でさらに200WAON POINTプレゼント。※毎月最大10件（800WAON POINT）まで紹介可能">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>検索 | iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ</title>
+    <link rel="icon" href="https://www.aeon.com/aeonapp/img/favicon.ico">
+    <link rel="apple-touch-icon" type="image/png" href="https://www.aeon.com/aeonapp/img/apple-touch-icon-180x180.png">
+    <!-- style -->
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_pc.css?210901"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_sp.css?210901"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_pc.css?231108"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_sp.css?231108"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="./style.css">
+    <!-- //style -->
+    <script src="https://www.aeon.com/assets/js/gtm_header_tag.js"></script>
+
+    <!-- header.tml/footer.htmlを読み込むためのJQueryです ※位置変更しない --------------------------->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- -------------------------------------------------------------------------------------- -->
+
+    <title>店舗検索</title>
+</head>
+
+<body>
+    <!-- header.html の読み込み --------------------------->
+    <header id="appHead"></header>
+    <!-- --(/aeonapp/assets/js/...)-------------------- -->
+
+    <h2>店舗検索</h2>
+
+    <div class="search-area">
+        <input type="text" id="searchInput" placeholder="店舗名で検索..." />
+    </div>
+
+    <div id="itemListContainer"></div>
+    <p id="hint">都道府県を選ぶか、店舗名を入力すると候補が表示されます。</p>
+
+    <script>
+        fetch('itemList.html')
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('itemListContainer').innerHTML = html;
+
+                const input = document.getElementById("searchInput");
+                const prefSelect = document.getElementById("prefSelect"); // itemList.html 内
+                const items = document.querySelectorAll("#itemList li");
+                const hint = document.getElementById("hint");
+
+                // 初期は「全件」非表示
+                items.forEach(item => item.style.display = "none");
+
+                function applyFilters() {
+                    const keyword = (input.value || "").trim().toLowerCase();
+                    const selectedPref = (prefSelect.value || "").trim();
+
+                    const isActive = (keyword.length > 0) || (selectedPref.length > 0);
+
+                    // 何も条件がないなら全非表示
+                    if (!isActive) {
+                        items.forEach(item => item.style.display = "none");
+                        hint.textContent = "都道府県を選ぶか、店舗名を入力すると候補が表示されます。";
+                        return;
+                    }
+
+                    let visibleCount = 0;
+
+                    items.forEach(item => {
+                        const text = item.textContent.toLowerCase();
+                        const pref = (item.dataset.pref || "").trim();
+
+                        const matchKeyword = !keyword || text.includes(keyword);
+                        const matchPref = !selectedPref || pref === selectedPref;
+
+                        const show = matchKeyword && matchPref;
+                        item.style.display = show ? "list-item" : "none";
+                        if (show) visibleCount++;
+                    });
+
+                    hint.textContent = visibleCount > 0
+                        ? `${visibleCount}件表示`
+                        : "該当する店舗がありません。";
+                }
+
+                input.addEventListener("input", applyFilters);
+                prefSelect.addEventListener("change", applyFilters);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('itemListContainer').innerHTML = "<p>リストの読み込みに失敗しました。</p>";
+            });
+    </script>
+
+    <script src="https://www.aeon.com/aeonapp/campaign/202503_friendprogram/js/toggle.js"></script>
+    <script src="https://www.aeon.com/aeonapp/js/webview.js"></script>
+    <script src="https://www.aeon.com/aeonapp/js/nav.js"></script>
+    <!-- <script src="../../../aeonapp/js/scrool_top.js"></script> -->
+
+    <!-- footer.html の読み込み ========================--->
+    <footer id="appFooter"></footer><!-- /appFooter -->
+    <!-- =======(/aeonapp/assets/js/...)=============== -->
+
+
+    <!-- header.html/footer.html を読み込んでいる ========================= -->
+    <script src="https://www.aeon.com/aeonapp/aeonapp/assets/js/index.js"></script>
+    <script>
+        var dir = './'
+        headInclude(dir);
+        footerInclude(dir);
+    </script>
+    <!-- ================================================================ -->
+
+</body>
+
+</html>

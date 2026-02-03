@@ -1,0 +1,68 @@
+* {
+    box-sizing: border-box;
+}
+
+h2 {
+    margin: 0 0 12px;
+}
+
+.search-area {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+#searchInput {
+    padding: 8px 10px;
+    font-size: 20px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.filters {
+    margin: 0 0 12px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.filters select {
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+#itemList {
+    margin: 0;
+    padding-left: 18px;
+}
+
+#itemList li {
+    margin: 6px 0;
+    list-style: none;
+}
+
+#itemList a {
+    font-size: 16px;
+    text-decoration: underline;
+    margin-bottom: 1rem;
+    color: #b60081;
+}
+
+#itemList a:hover {
+    text-decoration: underline;
+}
+
+/* 初期表示や状態メッセージ */
+#hint {
+    margin: 8px 0 0;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+#contents {
+    padding: 150px 3%;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 960px;
+}
