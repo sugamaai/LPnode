@@ -8,9 +8,7 @@ const CSV_PATH = path.join(__dirname, "shops.csv");
 const OUT_PATH = path.join(__dirname, "itemList.html");
 
 // 都道府県の表示順（必要な分だけでOK）
-const PREF_ORDER = [
-    "東京都", "千葉県", "神奈川県", "埼玉県"
-];
+const PREF_ORDER = ["東京都", "千葉県", "神奈川県", "埼玉県"];
 
 // CSV 1行パース（ダブルクォート対応）
 function parseCsvLine(line) {
@@ -46,6 +44,13 @@ const esc = (s) =>
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+
+// 検索用（小文字化＋空白正規化）
+const norm = (s) =>
+    String(s)
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
 
 // 表示用都道府県名（県・都を省略）
 function prefLabel(pref) {
@@ -84,27 +89,41 @@ function main() {
     const html = `
 <div class="campaign__list__wrap">
 ${prefs
-            .map(
-                (pref) => `
-    <details class="accordion">
-      <summary>${esc(prefLabel(pref))}</summary>
-      <div>
-        <ul class="fs_small">
-${map
-                        .get(pref)
+            .map((pref) => {
+                const items = map.get(pref);
+                const showSearch = items.length >= 10;
+
+                return `
+  <details class="accordion">
+    <summary>${esc(prefLabel(pref))}</summary>
+    <div>
+      ${showSearch
+                        ? `<div class="accordion-search-wrap">
+          <input class="accordion-search" type="search" placeholder="店舗名で検索" aria-label="店舗名で検索">
+        </div>`
+                        : ""
+                    }
+      <ul class="fs_small">
+${items
                         .map(
                             (s) =>
-                                `          <li><a href="${esc(s.url)}" target="_blank">${esc(
-                                    s.name
-                                )}</a></li>`
+                                `        <li data-name="${esc(norm(s.name))}"><a href="${esc(
+                                    s.url
+                                )}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a></li>`
                         )
                         .join("\n")}
-        </ul>
-      </div>
-    </details>`
-            )
+      </ul>
+      ${showSearch
+                        ? `<p class="accordion-search-empty" hidden>一致する店舗がありません</p>`
+                        : ""
+                    }
+    </div>
+  </details>`;
+            })
             .join("\n")}
 </div>
+
+
 `.trim();
 
     fs.writeFileSync(OUT_PATH, html, "utf8");

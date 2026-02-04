@@ -119,12 +119,53 @@
                             <div id="store-list"></div>
 
                             <script>
+                                function initAccordionSearch(scope) {
+                                    const root = scope || document;
+                                    const inputs = root.querySelectorAll('input.accordion-search');
+
+                                    inputs.forEach(input => {
+                                        const detail = input.closest('details.accordion');
+                                        if (!detail) return;
+
+                                        const ul = detail.querySelector('ul');
+                                        const empty = detail.querySelector('.accordion-search-empty');
+
+                                        const runFilter = () => {
+                                            const q = (input.value || '').toLowerCase().trim();
+                                            const lis = ul ? ul.querySelectorAll('li') : [];
+                                            let visible = 0;
+
+                                            lis.forEach(li => {
+                                                const key = (li.dataset.name || li.textContent || '').toLowerCase();
+                                                const hit = !q || key.includes(q);
+                                                li.hidden = !hit;
+                                                if (hit) visible++;
+                                            });
+
+                                            if (empty) empty.hidden = (visible !== 0);
+                                        };
+
+                                        input.addEventListener('input', runFilter);
+
+                                        detail.addEventListener('toggle', () => {
+                                            if (detail.open) return;
+                                            input.value = '';
+                                            runFilter();
+                                        });
+                                    });
+                                }
+
                                 fetch("./itemList.html")
                                     .then(r => r.text())
                                     .then(html => {
-                                        document.getElementById("store-list").innerHTML = html;
+                                        const holder = document.getElementById("store-list");
+                                        holder.innerHTML = html;
+
+                                        // ★ここで初期化（挿入後だから効く）
+                                        initAccordionSearch(holder);
                                     });
                             </script>
+
 
                         </div>
 
@@ -250,6 +291,7 @@
     </script>
 
     <!-- ================================================================ -->
+
 </body>
 
 
