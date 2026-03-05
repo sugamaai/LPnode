@@ -1,0 +1,3 @@
+◼︎node generate.jsでitemList.htmlを書き出し
+
+◼︎index.html内で、itemList.htmlを呼び出して表示
