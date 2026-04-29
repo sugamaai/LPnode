@@ -1,0 +1,37 @@
+.campaign__list__wrap {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    /* 折り返し */
+    gap: 0px;
+    /* 任意：余白 */
+}
+
+@media (max-width: 640px) {
+    .campaign__list__wrap>details {
+        flex: 0 0 100%;
+    }
+}
+
+.main_section {
+    width: 100%;
+}
+
+.accordion-search-wrap {
+    padding: 8px 0;
+}
+
+.accordion-search {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.accordion-search-empty {
+    margin: 8px 0 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
