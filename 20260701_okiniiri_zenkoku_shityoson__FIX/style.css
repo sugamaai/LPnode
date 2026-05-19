@@ -1,0 +1,342 @@
+.campaign__list__wrap {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    /* 折り返し */
+    gap: 0px;
+    /* 任意：余白 */
+}
+
+@media (max-width: 640px) {
+    .campaign__list__wrap>details {
+        flex: 0 0 100%;
+    }
+}
+
+.main_section {
+    width: 100%;
+}
+
+.accordion-search-wrap {
+    padding: 8px 0;
+}
+
+.accordion-search {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 12px;
+    border: 1px solid #B62C81;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.accordion-search-empty {
+    margin: 8px 0 0;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.campaign__list__wrap .accordion {
+    width: 100%;
+}
+
+
+/* お気に入り店舗登録ボタン */
+.store-wrap {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 60px;
+    max-height: 150px;
+    border: #ddd solid 1px;
+    padding: 20px !important;
+    border-radius: 10px;
+}
+
+.store-wrap div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0px;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+
+}
+
+.store-wrap p {
+    text-align: left;
+    color: #000000;
+}
+
+.store-wrap img {
+    max-height: 100px;
+    width: auto;
+    object-fit: contain;
+}
+
+
+
+button {
+    background-color: #B62C81;
+    color: #fff !important;
+    font-weight: bold;
+    padding: 10px 40px;
+    border-radius: 99px;
+    border: 0;
+}
+
+.fs_small li {
+    width: 100%;
+    display: block;
+}
+
+.fs_small li a {
+    display: block;
+    width: 100%;
+}
+
+.store-wrap {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.fs_small li,
+.fs_small li a,
+.store-wrap {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    .store-wrap {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        width: 100%;
+        box-sizing: border-box;
+        border: #ddd solid 1px;
+        padding: 20px !important;
+        border-radius: 10px;
+        max-height: inherit;
+    }
+
+    .store-wrap>div {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .store-wrap button {
+        width: 100%;
+        box-sizing: border-box;
+        justify-self: stretch;
+    }
+
+    .campaign__list__wrap ul {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 10px;
+        list-style: none;
+        padding: 0 10px;
+        margin: 0;
+    }
+
+}
+
+
+
+/* 屋号選択ボタン */
+/* 屋号フィルター */
+.brand-filter {
+    margin: 16px 0 20px;
+    padding: 16px;
+    background: #fff7fc;
+    border-radius: 12px;
+}
+
+.brand-filter-title {
+    margin: 0 0 12px;
+    color: #B62C81;
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.brand-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0;
+}
+
+.brand-filter-list label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid #B62C81;
+    border-radius: 999px;
+    background: #fff;
+    color: #B62C81;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.brand-filter-list input[type="radio"] {
+    accent-color: #B62C81;
+}
+
+.brand-filter-list label:has(input[type="radio"]:checked) {
+    background: #B62C81;
+    color: #fff;
+}
+
+
+
+/* ランダムボタン */
+.random-store-box {
+    margin: 32px 0;
+    text-align: center;
+}
+
+.random-store-box button {
+    background: #B62C81;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-size: 120%;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #8f1f63;
+}
+
+.random-store-box button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #8f1f63;
+}
+
+/* 都道府県セレクト */
+.store-select-area {
+    margin: 24px 0;
+    padding: 20px;
+    background: #fff7fc;
+    border-radius: 14px;
+}
+
+.select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.select-row label {
+    display: grid;
+    gap: 8px;
+    color: #B62C81;
+    font-weight: bold;
+}
+
+.select-row select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #B62C81;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 16px;
+}
+
+.select-guide {
+    margin: 16px 0;
+    text-align: center;
+    color: #666;
+}
+
+@media (max-width: 640px) {
+
+
+    .select-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+#campaign__list {
+    position: relative;
+}
+
+.loading-local {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    display: grid;
+    place-items: center;
+    color: #B62C81;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+
+/* 現在地から探す */
+
+#nearby-store-list {
+    text-align: center;
+    padding-bottom: 50px;
+    overflow: hidden;
+}
+
+#nearby-store-list .nearby-swiper {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 12px 12px 12px 24px;
+    margin: 0;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+
+    /* 吸着を無効化 */
+    scroll-snap-type: none;
+}
+
+#nearby-store-list .nearby-slide {
+    flex: 0 0 calc((100% - 24px) / 1.5);
+    max-width: calc((100% - 24px) / 1.5);
+    box-sizing: border-box;
+    scroll-snap-align: none;
+}
+
+#nearby-store-list .nearby-slide * {
+    box-sizing: border-box;
+    display: block;
+}
+
+#nearby-store-list .nearby-slide li {
+    list-style: none;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+#nearby-store-list .nearby-slide a {
+    display: block;
+    width: 100%;
+}
+
+#nearby-store-list .nearby-slide .store-wrap {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+}
+
+#nearby-store-list button {
+    margin-top: 10px;
+}
+
+#nearby-store-list img {
+    margin: 0 auto;
+}
+
+.store-distance {
+    font-size: 80%;
+}

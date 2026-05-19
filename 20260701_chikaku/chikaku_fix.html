@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#">
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="refresh" content="0; URL=https://www.aeon.com/aeonapp/"> リダイレクト設定 -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="iAEON,AEON,アイイオン,WAONPOINT,ワオンポイント,WAON,ワオン,イオンのアプリ,イオンカード,キャンペーン">
+    <meta name="description" content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）">
+    <meta property="og:url" content="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/img/ogp.jpg">
+    <meta property="og:title"
+        content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）| iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ">
+    <meta property="og:description" content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）| iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ
+    </title>
+    <link rel="icon" href="https://www.aeon.com/aeonapp/img/favicon.ico?230329">
+    <link rel="apple-touch-icon" type="image/png"
+        href="https://www.aeon.com/aeonapp/img/apple-touch-icon-180x180.png?230329">
+
+    <!-- style -->
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_pc.css?210901"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_sp.css?210901"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_pc.css?231108"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_sp.css?231108"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/style.css">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/list.css">
+    <link rel="stylesheet" href="./style.css">
+    <!-- //style -->
+
+    <script src="../../../assets/js/gtm_header_tag.js"></script>
+    <!-- header.tml/footer.htmlを読み込むためのJQueryです ※位置変更しない --------------------------->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- -------------------------------------------------------------------------------------- -->
+
+</head>
+
+<body id="scroll">
+    <noscript src="../../../assets/js/gtm_body_tag.js"></noscript>
+
+
+    <main>
+        <div id="nearby-store-list">
+            <button type="button" id="nearbyStoreBtn">
+                近くの店舗を探す
+            </button>
+        </div>
+
+        <script>
+            const CSV_PATH = "./shops.csv";
+
+            // CSV 1行パース
+            function parseCsvLine(line) {
+                const cols = [];
+                let cur = "";
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (ch === "," && !inQuotes) {
+                        cols.push(cur.trim());
+                        cur = "";
+                    } else {
+                        cur += ch;
+                    }
+                }
+
+                cols.push(cur.trim());
+
+                return cols;
+            }
+
+            // 距離計算（km）
+            function calcDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371;
+
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+
+                const a =
+                    Math.sin(dLat / 2) ** 2 +
+                    Math.cos(lat1 * Math.PI / 180) *
+                    Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng / 2) ** 2;
+
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
+            // CSV読み込み
+            async function loadStores() {
+                const res = await fetch(CSV_PATH);
+                const csv = await res.text();
+
+                const lines = csv.split(/\r?\n/).filter(Boolean);
+
+                return lines
+                    .slice(1)
+                    .map(line => {
+                        const cols = parseCsvLine(line);
+
+                        return {
+                            code: cols[0],         // A列
+                            pref: cols[1],         // B列
+                            name: cols[2],         // C列
+                            url: cols[3],          // D列
+                            image: cols[4],        // E列
+                            brand: cols[5],        // F列
+                            startDate: cols[6],    // G列
+                            endDate: cols[7],      // H列
+                            city: cols[8],         // I列
+                            address: cols[9],      // J列
+                            lat: Number(cols[10]), // K列
+                            lng: Number(cols[11]), // L列
+                        };
+                    })
+                    .filter(store =>
+                        !Number.isNaN(store.lat) &&
+                        !Number.isNaN(store.lng)
+                    );
+            }
+
+            // HTML描画
+            function renderStores(stores) {
+                const area = document.getElementById("nearby-store-list");
+
+                area.innerHTML = `
+                <h3 class="nearby-title">
+                    現在地から近い店舗
+                </h3>
+        
+                <ul class="nearby-store-list">
+                    ${stores.map(store => `
+                        <li>
+                            <a href="${store.url}"
+                               target="_blank"
+                               rel="noopener noreferrer">
+        
+                                <div class="nearby-store-card">
+        
+                                    <div class="nearby-store-info">
+        
+                                        <p class="nearby-store-name">
+                                            ${store.name}
+                                        </p>
+        
+                                        <p class="nearby-store-brand">
+                                            ${store.brand}
+                                        </p>
+        
+                                        <p class="nearby-store-address">
+                                            ${store.address}
+                                        </p>
+        
+                                        <p class="nearby-store-distance">
+                                            約${store.distance.toFixed(1)}km
+                                        </p>
+        
+                                    </div>
+        
+                                    ${store.image
+                        ? `<img src="./img/${store.image}"
+                                                    alt="${store.name}"
+                                                    class="nearby-store-image">`
+                        : ""
+                    }
+        
+                                </div>
+        
+                            </a>
+                        </li>
+                    `).join("")}
+                </ul>
+            `;
+            }
+
+            // ボタンクリック
+            document
+                .getElementById("nearbyStoreBtn")
+                .addEventListener("click", async () => {
+
+                    const area = document.getElementById("nearby-store-list");
+
+                    area.innerHTML = `
+                    <p class="nearby-loading">
+                        現在地を取得しています...
+                    </p>
+                `;
+
+                    const stores = await loadStores();
+
+                    navigator.geolocation.getCurrentPosition(
+
+                        // 成功
+                        position => {
+
+                            const userLat = position.coords.latitude;
+                            const userLng = position.coords.longitude;
+
+                            console.log("現在地:", userLat, userLng);
+
+                            const nearestStores = stores
+                                .map(store => ({
+                                    ...store,
+                                    distance: calcDistance(
+                                        userLat,
+                                        userLng,
+                                        store.lat,
+                                        store.lng
+                                    ),
+                                }))
+                                .sort((a, b) => a.distance - b.distance)
+                                .slice(0, 10);
+
+                            console.log("近い店舗:", nearestStores);
+
+                            renderStores(nearestStores);
+                        },
+
+                        // 失敗
+                        error => {
+
+                            console.error(error);
+
+                            area.innerHTML = `
+                            <p class="nearby-error">
+                                位置情報を取得できませんでした。<br>
+                                ブラウザの位置情報設定をご確認ください。
+                            </p>
+                        `;
+                        },
+
+                        // オプション
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0,
+                        }
+                    );
+                });
+        </script>
+
+    </main>
+
+
+
+
+    <!-- アコーディオンメニュー他js ========================== -->
+    <script src="https://www.aeon.com/aeonapp/js/webview.js"></script>
+    <script src="https://www.aeon.com/aeonapp/js/nav.js"></script>
+
+
+    <!-- header.html/footer.html を読み込んでいる ========================= -->
+    <!-- <script src="https://www.aeon.com/aeonapp/assets/js/index.js"></script>
+    <script>
+        var dir = './'
+        headInclude(dir);
+        footerInclude(dir);
+    </script> -->
+
+    <!-- ================================================================ -->
+
+</body>
+
+
+</html>

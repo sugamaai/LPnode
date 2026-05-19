@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#">
+    <meta charset="UTF-8">
+    <!-- <meta http-equiv="refresh" content="0; URL=https://www.aeon.com/aeonapp/"> リダイレクト設定 -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="iAEON,AEON,アイイオン,WAONPOINT,ワオンポイント,WAON,ワオン,イオンのアプリ,イオンカード,キャンペーン">
+    <meta name="description" content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）">
+    <meta property="og:url" content="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/img/ogp.jpg">
+    <meta property="og:title"
+        content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）| iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ">
+    <meta property="og:description" content="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）| iAEON（アイイオン）-ポイントまとまる。支払いなめらか。イオンの公式トータルアプリ
+    </title>
+    <link rel="icon" href="https://www.aeon.com/aeonapp/img/favicon.ico?230329">
+    <link rel="apple-touch-icon" type="image/png"
+        href="https://www.aeon.com/aeonapp/img/apple-touch-icon-180x180.png?230329">
+
+    <!-- style -->
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_pc.css?210901"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/reset_sp.css?210901"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_pc.css?231108"
+        media="screen and (min-width:641px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/css/common_sp.css?231108"
+        media="screen and (max-width:640px)">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/style.css">
+    <link rel="stylesheet" href="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/list.css">
+    <link rel="stylesheet" href="./style.css">
+    <!-- //style -->
+
+    <script src="../../../assets/js/gtm_header_tag.js"></script>
+    <!-- header.tml/footer.htmlを読み込むためのJQueryです ※位置変更しない --------------------------->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- -------------------------------------------------------------------------------------- -->
+
+</head>
+
+<body id="scroll">
+    <noscript src="../../../assets/js/gtm_body_tag.js"></noscript>
+
+
+    <main>
+        <div id="header"> <!-- class="end"-->
+            <div id="header-inner">
+                <!-- <h1><img src="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/img/pc_header.webp"
+                        alt="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）" class="pc"><img
+                        src="https://www.aeon.com/aeonapp/campaign/202509_mv_kanto/img/sp_header.webp"
+                        alt="マックスバリュ、マックスバリュエクスプレスのお店をお気に入り登録+レジのご提示で税抜価格より10%OFF（一部対象外商品あり）" class="sp"></h1> -->
+                <h1>お気に入り登録できる店舗を探す</h1>
+            </div>
+        </div>
+
+
+        <!-- 地域別検索 -->
+        <div class="contents">
+            <div class="section">
+                <div class="section-inner">
+
+                    <div class="main_section">
+
+
+                        <div class="outline-box" id="campaign__list">
+                            <h3><span>関東地方</span></h3>
+                            <div id="store-list"></div>
+
+                            <script>
+                                function normalizeText(text) {
+                                    return String(text || "")
+                                        .toLowerCase()
+                                        .replace(/\s+/g, " ")
+                                        .trim();
+                                }
+
+                                function initAccordionSearchAndBrandFilter(scope) {
+                                    const root = scope || document;
+                                    const accordions = root.querySelectorAll("details.accordion");
+
+                                    accordions.forEach(detail => {
+                                        const input = detail.querySelector("input.accordion-search");
+                                        const radios = detail.querySelectorAll(".brand-radio");
+                                        const lis = detail.querySelectorAll("ul li");
+                                        const empty = detail.querySelector(".accordion-search-empty");
+
+                                        function runFilter() {
+                                            const q = normalizeText(input?.value);
+
+                                            const checked = detail.querySelector(".brand-radio:checked");
+                                            const selectedBrand = normalizeText(checked?.value);
+
+                                            let visible = 0;
+
+                                            lis.forEach(li => {
+                                                const name = normalizeText(li.dataset.name);
+                                                const brand = normalizeText(li.dataset.brand);
+
+                                                const nameHit =
+                                                    !q || name.includes(q);
+
+                                                const brandHit =
+                                                    !selectedBrand ||
+                                                    brand === selectedBrand;
+
+                                                const hit = nameHit && brandHit;
+
+                                                li.style.display = hit ? "" : "none";
+
+                                                if (hit) visible++;
+                                            });
+
+                                            if (empty) {
+                                                empty.style.display =
+                                                    visible === 0 ? "block" : "none";
+                                            }
+                                        }
+
+                                        if (input) {
+                                            input.addEventListener("input", runFilter);
+                                        }
+
+                                        radios.forEach(radio => {
+                                            radio.addEventListener("change", runFilter);
+                                        });
+
+                                        runFilter();
+                                    });
+                                }
+
+                                function initRandomStore(scope) {
+                                    const root = scope || document;
+                                    const randomBtn = root.querySelector("#randomStoreBtn");
+
+                                    if (!randomBtn) return;
+
+                                    const links = Array.from(
+                                        root.querySelectorAll(".campaign__list__wrap li a[href]")
+                                    );
+
+                                    if (links.length === 0) return;
+
+                                    const randomIndex = Math.floor(Math.random() * links.length);
+                                    const randomLink = links[randomIndex];
+
+                                    console.log("ランダム店舗:", randomLink.href);
+
+                                    randomBtn.addEventListener("click", function () {
+                                        window.open(randomLink.href, "_blank", "noopener,noreferrer");
+                                    });
+                                }
+
+                                fetch("./itemList.html")
+                                    .then(r => r.text())
+                                    .then(html => {
+                                        const holder = document.getElementById("store-list");
+
+                                        holder.innerHTML = html;
+
+                                        initAccordionSearchAndBrandFilter(holder);
+                                        initRandomStore(holder);
+                                    });
+                            </script>
+
+                        </div>
+
+
+
+
+                    </div><!-- class="main_section" -->
+
+                </div><!-- class="section-inner" -->
+
+            </div><!-- class="section" -->
+
+            <!--// #contents -->
+
+        </div><!--// 地域別検索 -->
+
+
+
+    </main>
+
+
+
+
+    <!-- アコーディオンメニュー他js ========================== -->
+    <script src="https://www.aeon.com/aeonapp/js/webview.js"></script>
+    <script src="https://www.aeon.com/aeonapp/js/nav.js"></script>
+
+
+    <!-- header.html/footer.html を読み込んでいる ========================= -->
+    <!-- <script src="https://www.aeon.com/aeonapp/assets/js/index.js"></script>
+    <script>
+        var dir = './'
+        headInclude(dir);
+        footerInclude(dir);
+    </script> -->
+
+    <!-- ================================================================ -->
+
+</body>
+
+
+</html>
