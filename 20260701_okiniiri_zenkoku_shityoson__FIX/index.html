@@ -59,9 +59,7 @@
 
         <!-- 現在地から探す -->
         <div id="nearby-store-list">
-            <button type="button" id="nearbyStoreBtn">
-                近くの店舗を探す
-            </button>
+            <a href="chikaku.html" class="nearby-store-list-link">近くの店舗を探す</a>
         </div>
         <!-- /　現在地から探す -->
 
@@ -122,14 +120,17 @@
         </div>
         <!-- / ランダムボタン -->
 
+
+
+
     </main>
 
 
 
 
     <!-- アコーディオンメニュー他js ========================== -->
-    <script src="https://www.aeon.com/aeonapp/js/webview.js"></script>
-    <script src="https://www.aeon.com/aeonapp/js/nav.js"></script>
+    <!-- <script src="https://www.aeon.com/aeonapp/js/webview.js"></script>
+    <script src="https://www.aeon.com/aeonapp/js/nav.js"></script> -->
 
     <script>
         const CSV_PATH = "./shops.csv";
@@ -203,20 +204,6 @@
             return true;
         }
 
-        function calcDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-
-            const a =
-                Math.sin(dLat / 2) ** 2 +
-                Math.cos(lat1 * Math.PI / 180) *
-                Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLng / 2) ** 2;
-
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-
         async function loadStores() {
             const res = await fetch(CSV_PATH);
 
@@ -252,19 +239,15 @@
             );
         }
 
-        function renderStoreCard(store, showDistance = false) {
+        function renderStoreCard(store) {
             return `
                 <li>
                     <a href="${escapeHtml(store.url)}" target="_blank" rel="noopener noreferrer">
                         <div class="store-wrap">
                             <div>
-                                <div class=nearstore-name>
-                                <p>${escapeHtml(store.name)}</p>
-                                ${showDistance && store.distance !== undefined
-                    ? `<p class="store-distance">約${store.distance.toFixed(1)}km</p>`
-                    : ""
-                }
-                    </div>
+                                <div class="nearstore-name">
+                                    <p>${escapeHtml(store.name)}</p>
+                                </div>
                                 ${store.image && shouldShowImage(store.startDate, store.endDate)
                     ? `<img src="./img/${escapeHtml(store.image)}" alt="${escapeHtml(store.name)}">`
                     : ""
@@ -295,21 +278,6 @@
                     ${stores.map(store => renderStoreCard(store)).join("")}
                 </ul>
             `;
-        }
-
-        function renderNearbyStores(stores) {
-            const area = document.getElementById("nearby-store-list");
-
-            area.innerHTML = `
-        <h3 class="nearby-title">現在地から近い店舗</h3>
-        <div class="nearby-swiper">
-            ${stores.map(store => `
-                <div class="nearby-slide">
-                    ${renderStoreCard(store, true)}
-                </div>
-            `).join("")}
-        </div>
-    `;
         }
 
         function initPrefSelect() {
@@ -368,53 +336,6 @@
             list.innerHTML = '<p class="select-guide">市町村を選択してください。</p>';
         }
 
-        function initNearbySearch() {
-            const nearbyBtn = document.getElementById("nearbyStoreBtn");
-            const area = document.getElementById("nearby-store-list");
-
-            if (!nearbyBtn || !area) return;
-
-            nearbyBtn.addEventListener("click", () => {
-                area.innerHTML = '<p class="nearby-loading">現在地を取得しています...</p>';
-
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const userLat = position.coords.latitude;
-                        const userLng = position.coords.longitude;
-
-                        const nearestStores = STORE_DATA
-                            .filter(store =>
-                                !Number.isNaN(store.lat) &&
-                                !Number.isNaN(store.lng)
-                            )
-                            .map(store => ({
-                                ...store,
-                                distance: calcDistance(userLat, userLng, store.lat, store.lng),
-                            }))
-                            .sort((a, b) => a.distance - b.distance)
-                            .slice(0, 10);
-
-                        renderNearbyStores(nearestStores);
-                    },
-                    error => {
-                        console.error(error);
-
-                        area.innerHTML = `
-                            <p class="nearby-error">
-                                位置情報を取得できませんでした。<br>
-                                ブラウザの位置情報設定をご確認ください。
-                            </p>
-                        `;
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0,
-                    }
-                );
-            });
-        }
-
         function initRandomStore() {
             const randomBtn = document.getElementById("randomStoreBtn");
 
@@ -442,19 +363,11 @@
                 if (loading) loading.remove();
 
                 initPrefSelect();
-                initNearbySearch();
+                initRandomStore();
 
                 prefSelect.addEventListener("change", () => {
                     updateCitySelect(prefSelect.value);
                 });
-                await loadStores();
-
-                if (loading) {
-                    loading.remove();
-                }
-
-                initPrefSelect();
-                initRandomStore();
 
                 citySelect.addEventListener("change", () => {
                     if (!prefSelect.value || !citySelect.value) return;
@@ -472,7 +385,6 @@
 
         initStoreSearch();
     </script>
-
 
     <!-- header.html/footer.html を読み込んでいる ========================= -->
     <!-- <script src="https://www.aeon.com/aeonapp/assets/js/index.js"></script>

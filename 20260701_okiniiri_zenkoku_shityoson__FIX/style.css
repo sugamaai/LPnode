@@ -46,7 +46,7 @@
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 60px;
+    gap: 20px;
     max-height: 150px;
     border: #ddd solid 1px;
     padding: 20px !important;
@@ -280,63 +280,41 @@ button {
 
 /* 現在地から探す */
 
-#nearby-store-list {
-    text-align: center;
-    padding-bottom: 50px;
-    overflow: hidden;
-}
 
-#nearby-store-list .nearby-swiper {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 12px;
-    overflow-x: auto;
-    padding: 12px 12px 12px 24px;
-    margin: 0;
-    box-sizing: border-box;
-    -webkit-overflow-scrolling: touch;
-
-    /* 吸着を無効化 */
-    scroll-snap-type: none;
-}
-
-#nearby-store-list .nearby-slide {
-    flex: 0 0 calc((100% - 24px) / 1.5);
-    max-width: calc((100% - 24px) / 1.5);
-    box-sizing: border-box;
-    scroll-snap-align: none;
-}
-
-#nearby-store-list .nearby-slide * {
-    box-sizing: border-box;
+.nearby-store-list {
     display: block;
-}
-
-#nearby-store-list .nearby-slide li {
     list-style: none;
-    margin: 0 !important;
-    width: 100% !important;
+    padding: 0 5% 100px;
+    text-align: center;
 }
 
-#nearby-store-list .nearby-slide a {
-    display: block;
-    width: 100%;
-}
-
-#nearby-store-list .nearby-slide .store-wrap {
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
+.nearby-store-list-link {
+    background-color: #fff;
+    border-radius: 999px;
+    border: solid #B62C81 2px;
+    padding: 20px 40px;
+    color: #B62C81;
+    font-weight: bold;
+    display: inline-block;
+    margin: 0 auto 100px;
 }
 
 #nearby-store-list button {
-    margin-top: 10px;
+    margin-bottom: 100px;
 }
 
-#nearby-store-list img {
+
+
+.nearby-store-list li {
+    margin-bottom: 2rem;
+}
+
+main {
+    width: 100%;
+    max-width: 650px;
     margin: 0 auto;
 }
 
-.store-distance {
-    font-size: 80%;
+.nearstore-name {
+    display: block !important;
 }
