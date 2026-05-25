@@ -454,6 +454,8 @@ main.chikaku-wrap {
 /* 検索窓右側の虫眼鏡アイコン */
 .store-filter-wrap {
     position: relative;
+    margin: 0 auto;
+    width: 94%;
 }
 
 .store-filter-wrap::after {

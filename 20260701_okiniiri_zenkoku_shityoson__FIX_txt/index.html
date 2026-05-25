@@ -347,14 +347,18 @@
             const resultCount = document.getElementById("storeResultCount");
 
             keywordInput.addEventListener("input", function () {
-                const keyword = normalizeSearchText(this.value);
+                const keywords = this.value
+                    .trim()
+                    .split(/[\s　]+/)
+                    .map(keyword => normalizeSearchText(keyword))
+                    .filter(Boolean);
 
                 const filteredStores = stores.filter(store => {
                     const searchTarget = normalizeSearchText(
                         `${store.name} ${store.address} ${store.brand}`
                     );
 
-                    return searchTarget.includes(keyword);
+                    return keywords.every(keyword => searchTarget.includes(keyword));
                 });
 
                 resultCount.textContent = `${filteredStores.length}店舗を表示しています`;
