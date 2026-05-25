@@ -500,4 +500,6 @@ main.chikaku-wrap {
     color: #555;
     font-size: 14px;
     text-align: center;
+    width: 94%;
+    margin: 0 auto;
 }
