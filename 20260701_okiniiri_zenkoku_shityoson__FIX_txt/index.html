@@ -277,6 +277,25 @@
             `;
         }
 
+        function normalizeSearchText(value) {
+            return String(value ?? "")
+                .normalize("NFKC")
+                .toLowerCase()
+                .replace(/\s+/g, "");
+        }
+
+        function renderStoreList(stores) {
+            if (stores.length === 0) {
+                return '<p class="store-filter-empty">該当する店舗がありません。</p>';
+            }
+
+            return `
+        <ul class="fs_small">
+            ${stores.map(store => renderStoreCard(store)).join("")}
+        </ul>
+    `;
+        }
+
         function renderStores(pref, city) {
             const list = document.getElementById("selectedStoreList");
 
@@ -290,11 +309,57 @@
                 return;
             }
 
+            /*
+             * 19店舗以下の場合は、これまでどおり一覧だけを表示
+             */
+            if (stores.length < 20) {
+                list.innerHTML = renderStoreList(stores);
+                return;
+            }
+
+            /*
+             * 20店舗以上の場合は、検索窓を表示
+             */
             list.innerHTML = `
-                <ul class="fs_small">
-                    ${stores.map(store => renderStoreCard(store)).join("")}
-                </ul>
-            `;
+        <div class="store-filter-wrap">
+            <label class="store-filter-label" for="storeKeyword">
+                店舗名・住所から絞り込む
+            </label>
+            <input
+                type="search"
+                id="storeKeyword"
+                class="store-filter-input"
+                placeholder="例：○○店、中央区"
+                autocomplete="off"
+            >
+            <p id="storeResultCount" class="store-result-count">
+                ${stores.length}店舗を表示しています
+            </p>
+        </div>
+
+        <div id="filteredStoreList">
+            ${renderStoreList(stores)}
+        </div>
+    `;
+
+            const keywordInput = document.getElementById("storeKeyword");
+            const filteredStoreList = document.getElementById("filteredStoreList");
+            const resultCount = document.getElementById("storeResultCount");
+
+            keywordInput.addEventListener("input", function () {
+                const keyword = normalizeSearchText(this.value);
+
+                const filteredStores = stores.filter(store => {
+                    const searchTarget = normalizeSearchText(
+                        `${store.name} ${store.address} ${store.brand}`
+                    );
+
+                    return searchTarget.includes(keyword);
+                });
+
+                resultCount.textContent = `${filteredStores.length}店舗を表示しています`;
+                filteredStoreList.innerHTML = renderStoreList(filteredStores);
+            });
         }
 
         function initPrefSelect() {
