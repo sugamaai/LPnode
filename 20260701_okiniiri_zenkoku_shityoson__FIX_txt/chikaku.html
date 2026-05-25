@@ -45,7 +45,7 @@
 <body id="scroll">
     <noscript src="../../../assets/js/gtm_body_tag.js"></noscript>
 
-    <main style="padding: 100px 0 100px;">
+    <main class="chikaku-wrap">
         <!-- <div id="header">
             <div id="header-inner">
                 <h1>お気に入り登録できる店舗を探す</h1>
@@ -252,7 +252,7 @@
             }
 
             area.innerHTML = `
-                <h3 class="nearby-title">現在地から近い店舗</h3>
+                <h3 class="nearby-title">お近くの店舗はこちら<span>早速お気に入り登録してみよう！！</span></h3>
                 <ul class="fs_small nearby-store-list">
                     ${stores.map(store => renderStoreCard(store)).join("")}
                 </ul>
