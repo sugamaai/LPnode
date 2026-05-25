@@ -68,29 +68,7 @@
 
     <script>
         const CSV_PATH = "./shops.csv";
-
         let STORE_DATA = [];
-        let storeDataPromise = null;
-
-        /*
-         * 店舗データを一度だけ読み込む。
-         * 読み込み中に再度呼ばれた場合は、同じ処理の完了を待つ。
-         * 読み込みに失敗した場合は、次回クリック時に再試行できるようにする。
-         */
-        function ensureStoresLoaded() {
-            if (STORE_DATA.length > 0) {
-                return Promise.resolve();
-            }
-
-            if (!storeDataPromise) {
-                storeDataPromise = loadStores().catch(error => {
-                    storeDataPromise = null;
-                    throw error;
-                });
-            }
-
-            return storeDataPromise;
-        }
 
         function parseCsvLine(line) {
             const cols = [];
@@ -135,19 +113,13 @@
             if (startDate) {
                 const start = new Date(startDate);
                 start.setHours(0, 0, 0, 0);
-
-                if (!Number.isNaN(start.getTime()) && today < start) {
-                    return false;
-                }
+                if (!Number.isNaN(start.getTime()) && today < start) return false;
             }
 
             if (endDate) {
                 const end = new Date(endDate);
                 end.setHours(0, 0, 0, 0);
-
-                if (!Number.isNaN(end.getTime()) && today >= end) {
-                    return false;
-                }
+                if (!Number.isNaN(end.getTime()) && today >= end) return false;
             }
 
             return true;
@@ -192,221 +164,98 @@
                     city: cols[8],
                     address: cols[9],
                     lat: Number(cols[10]),
-                    lng: Number(cols[11])
+                    lng: Number(cols[11]),
                 };
             }).filter(store =>
                 store.name &&
                 store.url &&
-                Number.isFinite(store.lat) &&
-                Number.isFinite(store.lng) &&
-                store.lat !== 0 &&
-                store.lng !== 0
+                !Number.isNaN(store.lat) &&
+                !Number.isNaN(store.lng)
             );
-
-            if (STORE_DATA.length === 0) {
-                throw new Error("位置情報を持つ店舗データがありません");
-            }
         }
 
         function renderStoreCard(store) {
             return `
-                <li>
-                    <a href="${escapeHtml(store.url)}" target="_blank" rel="noopener noreferrer">
-                        <div class="store-wrap">
-                            <div>
-                                <div class="nearstore-name">
-                                    <p>${escapeHtml(store.name)}</p>
-                                    <p class="store-distance">約${store.distance.toFixed(1)}km</p>
-                                </div>
+            <li>
+                <a href="${escapeHtml(store.url)}" target="_blank" rel="noopener noreferrer">
+                    <div class="store-wrap">
+                        <div>
+                            <div class="nearstore-name">
+                                <p>${escapeHtml(store.name)}</p>
+                                <p class="store-distance">約${store.distance.toFixed(1)}km</p>
+                            </div>
     
-                                ${store.image && shouldShowImage(store.startDate, store.endDate)
+                            ${store.image && shouldShowImage(store.startDate, store.endDate)
                     ? `<img src="./img/${escapeHtml(store.image)}" alt="${escapeHtml(store.name)}">`
                     : ""
                 }
-                            </div>
-    
-                            <span class="store-register-btn">登録する</span>
                         </div>
-                    </a>
-                </li>
-            `;
+    
+                        <button type="button">登録する</button>
+                    </div>
+                </a>
+            </li>
+        `;
         }
 
         function renderNearbyStores(stores) {
             const area = document.getElementById("nearby-store-list");
 
-            if (!area) return;
-
-            if (stores.length === 0) {
-                area.innerHTML = `
-                    <p class="nearby-error">
-                        現在地の近くに表示できる店舗がありませんでした。
-                    </p>
-                    <button type="button" id="nearbyStoreRetryBtn" class="track-btn chikaku">
-                        もう一度探す
-                    </button>
-                `;
-
-                bindRetryButton();
-                return;
-            }
-
             area.innerHTML = `
-                <h3 class="nearby-title">現在地から近い店舗</h3>
-                <ul class="fs_small nearby-store-list">
-                    ${stores.map(store => renderStoreCard(store)).join("")}
-                </ul>
-            `;
+        <h3 class="nearby-title">現在地から近い店舗</h3>
+        <ul class="fs_small nearby-store-list">
+            ${stores.map(store => renderStoreCard(store)).join("")}
+        </ul>
+    `;
         }
 
-        function showStatus(message, className) {
+        async function initNearbySearch() {
+            const btn = document.getElementById("nearbyStoreBtn");
             const area = document.getElementById("nearby-store-list");
 
-            if (!area) return;
-
-            let status = document.getElementById("nearbyStatus");
-
-            if (!status) {
-                status = document.createElement("p");
-                status.id = "nearbyStatus";
-                area.appendChild(status);
-            }
-
-            status.className = className;
-            status.innerHTML = message;
-        }
-
-        function removeStatus() {
-            const status = document.getElementById("nearbyStatus");
-
-            if (status) {
-                status.remove();
-            }
-        }
-
-        function getGeolocationErrorMessage(error) {
-            if (error.code === 1) {
-                return "位置情報の利用が許可されていません。<br>ブラウザの設定から位置情報を許可して、もう一度お試しください。";
-            }
-
-            if (error.code === 2) {
-                return "現在地を取得できませんでした。<br>電波状況のよい場所で、もう一度お試しください。";
-            }
-
-            if (error.code === 3) {
-                return "現在地の取得に時間がかかっています。<br>もう一度お試しください。";
-            }
-
-            return "位置情報を取得できませんでした。<br>ブラウザの位置情報設定をご確認ください。";
-        }
-
-        async function searchNearbyStores(btn) {
-            if (!btn) return;
-
-            btn.disabled = true;
-            removeStatus();
-            showStatus("店舗データを確認しています...", "nearby-loading");
+            if (!btn || !area) return;
 
             try {
-                await ensureStoresLoaded();
+                await loadStores();
             } catch (error) {
-                console.error("店舗データの読み込みに失敗しました:", error);
-
-                btn.disabled = false;
-                showStatus(
-                    "店舗データを読み込めませんでした。<br>時間をおいて再度お試しください。",
-                    "nearby-error"
-                );
+                console.error(error);
+                area.innerHTML = `<p class="nearby-error">店舗データを読み込めませんでした。</p>`;
                 return;
             }
-
-            if (!navigator.geolocation) {
-                btn.disabled = false;
-                showStatus(
-                    "このブラウザでは位置情報を利用できません。",
-                    "nearby-error"
-                );
-                return;
-            }
-
-            showStatus("現在地を取得しています...", "nearby-loading");
-
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    const nearestStores = STORE_DATA
-                        .map(store => ({
-                            ...store,
-                            distance: calcDistance(
-                                userLat,
-                                userLng,
-                                store.lat,
-                                store.lng
-                            )
-                        }))
-                        .sort((a, b) => a.distance - b.distance)
-                        .slice(0, 10);
-
-                    renderNearbyStores(nearestStores);
-                },
-                error => {
-                    console.error("位置情報の取得に失敗しました:", error);
-
-                    btn.disabled = false;
-                    showStatus(
-                        getGeolocationErrorMessage(error),
-                        "nearby-error"
-                    );
-                },
-                {
-                    enableHighAccuracy: false,
-                    timeout: 20000,
-                    maximumAge: 300000
-                }
-            );
-        }
-
-        function bindRetryButton() {
-            const retryBtn = document.getElementById("nearbyStoreRetryBtn");
-
-            if (!retryBtn) return;
-
-            retryBtn.addEventListener("click", () => {
-                const area = document.getElementById("nearby-store-list");
-
-                if (!area) return;
-
-                area.innerHTML = `
-                    <button type="button" id="nearbyStoreBtn" class="track-btn chikaku">
-                        タップして近くの店舗を表示する
-                    </button>
-                `;
-
-                initNearbyButton();
-            });
-        }
-
-        function initNearbyButton() {
-            const btn = document.getElementById("nearbyStoreBtn");
-
-            if (!btn) return;
 
             btn.addEventListener("click", () => {
-                searchNearbyStores(btn);
-            });
-        }
+                area.innerHTML = `<p class="nearby-loading">現在地を取得しています...</p>`;
 
-        function initNearbySearch() {
-            initNearbyButton();
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
 
-            /*
-             * ページ表示時点でCSVの事前読み込みを開始する。
-             * 読み込み中でもボタン自体は押せる。
-             */
-            ensureStoresLoaded().catch(error => {
-                console.error("店舗データの事前読み込みに失敗しました:", error);
+                        const nearestStores = STORE_DATA
+                            .map(store => ({
+                                ...store,
+                                distance: calcDistance(userLat, userLng, store.lat, store.lng),
+                            }))
+                            .sort((a, b) => a.distance - b.distance)
+                            .slice(0, 10);
+
+                        renderNearbyStores(nearestStores);
+                    },
+                    error => {
+                        console.error(error);
+                        area.innerHTML = `
+                        <p class="nearby-error">
+                            位置情報を取得できませんでした。<br>
+                            ブラウザの位置情報設定をご確認ください。
+                        </p>
+                    `;
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0,
+                    }
+                );
             });
         }
 
