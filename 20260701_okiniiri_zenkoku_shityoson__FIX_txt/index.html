@@ -166,33 +166,39 @@
             "沖縄県"
         ];
 
+        /* =========================
+           CSVパース
+        ========================= */
         function parseCsvLine(line) {
             const cols = [];
-            let cur = "";
+            let current = "";
             let inQuotes = false;
 
             for (let i = 0; i < line.length; i++) {
-                const ch = line[i];
+                const char = line[i];
 
-                if (ch === '"') {
+                if (char === '"') {
                     if (inQuotes && line[i + 1] === '"') {
-                        cur += '"';
+                        current += '"';
                         i++;
                     } else {
                         inQuotes = !inQuotes;
                     }
-                } else if (ch === "," && !inQuotes) {
-                    cols.push(cur.trim());
-                    cur = "";
+                } else if (char === "," && !inQuotes) {
+                    cols.push(current.trim());
+                    current = "";
                 } else {
-                    cur += ch;
+                    current += char;
                 }
             }
 
-            cols.push(cur.trim());
+            cols.push(current.trim());
             return cols;
         }
 
+        /* =========================
+           HTMLエスケープ
+        ========================= */
         function escapeHtml(value) {
             return String(value ?? "")
                 .replaceAll("&", "&amp;")
@@ -202,35 +208,137 @@
                 .replaceAll("'", "&#39;");
         }
 
+        /* =========================
+           検索用テキスト整形
+        ========================= */
+        function normalizeSearchText(value) {
+            return String(value ?? "")
+                .normalize("NFKC")
+                .toLowerCase()
+                .replace(/\s+/g, "");
+        }
+
+        /* =========================
+           日付変換
+           対応形式：
+           2026/6/1
+           2026/06/01
+           2026-6-1
+           2026-06-01
+        ========================= */
+        function parseDate(dateString) {
+            if (!dateString) {
+                return null;
+            }
+
+            const normalized = String(dateString)
+                .trim()
+                .replaceAll("/", "-");
+
+            const parts = normalized.split("-");
+
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            const year = Number(parts[0]);
+            const month = Number(parts[1]);
+            const day = Number(parts[2]);
+
+            if (
+                Number.isNaN(year) ||
+                Number.isNaN(month) ||
+                Number.isNaN(day)
+            ) {
+                return null;
+            }
+
+            const date = new Date(year, month - 1, day);
+            date.setHours(0, 0, 0, 0);
+
+            /*
+             * 2026/2/31 などの存在しない日付を除外
+             */
+            if (
+                date.getFullYear() !== year ||
+                date.getMonth() !== month - 1 ||
+                date.getDate() !== day
+            ) {
+                return null;
+            }
+
+            return date;
+        }
+
+        /* =========================
+           画像の表示期間判定
+    
+           startDate：画像表示開始日
+           endDate  ：画像表示終了日
+    
+           表示例：
+           ・開始日、終了日とも空欄 → 常時表示
+           ・2026/6/1, 空欄       → 2026/6/1以降表示
+           ・空欄, 2026/6/30      → 2026/6/30まで表示
+           ・2026/6/1, 2026/6/30 → 期間内のみ表示
+        ========================= */
         function shouldShowImage(startDate, endDate) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            if (startDate) {
-                const start = new Date(startDate);
-                start.setHours(0, 0, 0, 0);
-                if (!Number.isNaN(start.getTime()) && today < start) return false;
+            const start = parseDate(startDate);
+            const end = parseDate(endDate);
+
+            /*
+             * 開始日が設定されていて、今日が開始日前の場合は非表示
+             */
+            if (start && today < start) {
+                return false;
             }
 
-            if (endDate) {
-                const end = new Date(endDate);
-                end.setHours(0, 0, 0, 0);
-                if (!Number.isNaN(end.getTime()) && today >= end) return false;
+            /*
+             * 終了日が設定されていて、今日が終了日の翌日以降の場合は非表示
+             * 終了日当日は表示する
+             */
+            if (end && today > end) {
+                return false;
             }
 
             return true;
         }
 
+        /* =========================
+           CSVデータ読み込み
+        ========================= */
         async function loadStores() {
-            const res = await fetch(CSV_PATH);
+            const response = await fetch(CSV_PATH);
 
-            if (!res.ok) {
-                throw new Error("CSVを読み込めませんでした");
+            if (!response.ok) {
+                throw new Error("CSVを読み込めませんでした。");
             }
 
-            const csv = await res.text();
-            const lines = csv.split(/\r?\n/).filter(Boolean);
+            const csv = await response.text();
 
+            const lines = csv
+                .split(/\r?\n/)
+                .filter(line => line.trim() !== "");
+
+            /*
+             * CSV列構成
+             *
+             * A列：code
+             * B列：pref
+             * C列：name
+             * D列：url
+             * E列：image
+             * F列：brand
+             * G列：startDate 画像表示開始日
+             * H列：endDate   画像表示終了日
+             * I列：city
+             * J列：address
+             * K列：lat
+             * L列：lng
+             */
             STORE_DATA = lines.slice(1).map(line => {
                 const cols = parseCsvLine(line);
 
@@ -246,7 +354,7 @@
                     city: cols[8],
                     address: cols[9],
                     lat: Number(cols[10]),
-                    lng: Number(cols[11]),
+                    lng: Number(cols[11])
                 };
             }).filter(store =>
                 store.pref &&
@@ -256,20 +364,40 @@
             );
         }
 
+        /* =========================
+           店舗カード生成
+        ========================= */
         function renderStoreCard(store) {
+            const showImage =
+                Boolean(store.image) &&
+                shouldShowImage(store.startDate, store.endDate);
+
+            const imageHtml = showImage
+                ? `
+                    <img
+                        src="./img/${escapeHtml(store.image)}"
+                        alt="${escapeHtml(store.name)}"
+                        loading="lazy"
+                    >
+                `
+                : "";
+
             return `
                 <li>
-                    <a href="${escapeHtml(store.url)}" target="_blank" rel="noopener noreferrer">
+                    <a
+                        href="${escapeHtml(store.url)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         <div class="store-wrap">
                             <div>
                                 <div class="nearstore-name">
                                     <p>${escapeHtml(store.name)}</p>
                                 </div>
-                                ${store.image && shouldShowImage(store.startDate, store.endDate)
-                    ? `<img src="./img/${escapeHtml(store.image)}" alt="${escapeHtml(store.name)}">`
-                    : ""
-                }
+    
+                                ${imageHtml}
                             </div>
+    
                             <button type="button">登録する</button>
                         </div>
                     </a>
@@ -277,27 +405,30 @@
             `;
         }
 
-        function normalizeSearchText(value) {
-            return String(value ?? "")
-                .normalize("NFKC")
-                .toLowerCase()
-                .replace(/\s+/g, "");
-        }
-
+        /* =========================
+           店舗一覧生成
+        ========================= */
         function renderStoreList(stores) {
             if (stores.length === 0) {
                 return '<p class="store-filter-empty">該当する店舗がありません。</p>';
             }
 
             return `
-        <ul class="fs_small">
-            ${stores.map(store => renderStoreCard(store)).join("")}
-        </ul>
-    `;
+                <ul class="fs_small">
+                    ${stores.map(store => renderStoreCard(store)).join("")}
+                </ul>
+            `;
         }
 
+        /* =========================
+           選択された市町村の店舗表示
+        ========================= */
         function renderStores(pref, city) {
             const list = document.getElementById("selectedStoreList");
+
+            if (!list) {
+                return;
+            }
 
             const stores = STORE_DATA.filter(store =>
                 store.pref === pref &&
@@ -310,7 +441,7 @@
             }
 
             /*
-             * 19店舗以下の場合は、これまでどおり一覧だけを表示
+             * 19店舗以下の場合は一覧のみ表示
              */
             if (stores.length < 20) {
                 list.innerHTML = renderStoreList(stores);
@@ -318,29 +449,31 @@
             }
 
             /*
-             * 20店舗以上の場合は、検索窓を表示
+             * 20店舗以上の場合は検索窓を表示
              */
             list.innerHTML = `
-        <div class="store-filter-wrap">
-            <label class="store-filter-label" for="storeKeyword">
-                店舗名・住所から絞り込む
-            </label>
-            <input
-                type="search"
-                id="storeKeyword"
-                class="store-filter-input"
-                placeholder="例：○○店、中央区"
-                autocomplete="off"
-            >
-            <p id="storeResultCount" class="store-result-count">
-                ${stores.length}店舗を表示しています
-            </p>
-        </div>
-
-        <div id="filteredStoreList">
-            ${renderStoreList(stores)}
-        </div>
-    `;
+                <div class="store-filter-wrap">
+                    <label class="store-filter-label" for="storeKeyword">
+                        店舗名・住所から絞り込む
+                    </label>
+    
+                    <input
+                        type="search"
+                        id="storeKeyword"
+                        class="store-filter-input"
+                        placeholder="例：○○店、中央区"
+                        autocomplete="off"
+                    >
+    
+                    <p id="storeResultCount" class="store-result-count">
+                        ${stores.length}店舗を表示しています
+                    </p>
+                </div>
+    
+                <div id="filteredStoreList">
+                    ${renderStoreList(stores)}
+                </div>
+            `;
 
             const keywordInput = document.getElementById("storeKeyword");
             const filteredStoreList = document.getElementById("filteredStoreList");
@@ -358,28 +491,49 @@
                         `${store.name} ${store.address} ${store.brand}`
                     );
 
-                    return keywords.every(keyword => searchTarget.includes(keyword));
+                    return keywords.every(keyword =>
+                        searchTarget.includes(keyword)
+                    );
                 });
 
-                resultCount.textContent = `${filteredStores.length}店舗を表示しています`;
-                filteredStoreList.innerHTML = renderStoreList(filteredStores);
+                resultCount.textContent =
+                    `${filteredStores.length}店舗を表示しています`;
+
+                filteredStoreList.innerHTML =
+                    renderStoreList(filteredStores);
             });
         }
 
+        /* =========================
+           都道府県選択肢の生成
+        ========================= */
         function initPrefSelect() {
             const prefSelect = document.getElementById("prefSelect");
 
-            const prefs = [...new Set(STORE_DATA.map(store => store.pref))]
-                .sort((a, b) => {
-                    const indexA = PREF_ORDER.indexOf(a);
-                    const indexB = PREF_ORDER.indexOf(b);
+            if (!prefSelect) {
+                return;
+            }
 
-                    if (indexA === -1 && indexB === -1) return a.localeCompare(b, "ja");
-                    if (indexA === -1) return 1;
-                    if (indexB === -1) return -1;
+            const prefs = [...new Set(
+                STORE_DATA.map(store => store.pref)
+            )].sort((a, b) => {
+                const indexA = PREF_ORDER.indexOf(a);
+                const indexB = PREF_ORDER.indexOf(b);
 
-                    return indexA - indexB;
-                });
+                if (indexA === -1 && indexB === -1) {
+                    return a.localeCompare(b, "ja");
+                }
+
+                if (indexA === -1) {
+                    return 1;
+                }
+
+                if (indexB === -1) {
+                    return -1;
+                }
+
+                return indexA - indexB;
+            });
 
             prefs.forEach(pref => {
                 const option = document.createElement("option");
@@ -389,16 +543,27 @@
             });
         }
 
+        /* =========================
+           市町村選択肢の更新
+        ========================= */
         function updateCitySelect(pref) {
             const citySelect = document.getElementById("citySelect");
             const list = document.getElementById("selectedStoreList");
+
+            if (!citySelect || !list) {
+                return;
+            }
 
             citySelect.innerHTML = "";
 
             if (!pref) {
                 citySelect.disabled = true;
-                citySelect.innerHTML = '<option value="">先に都道府県を選択してください</option>';
-                list.innerHTML = '<p class="select-guide">都道府県と市町村を選択すると、<br>店舗が表示されます。</p>';
+                citySelect.innerHTML =
+                    '<option value="">先に都道府県を選択してください</option>';
+
+                list.innerHTML =
+                    '<p class="select-guide">都道府県と市町村を選択すると、<br>店舗が表示されます。</p>';
+
                 return;
             }
 
@@ -410,7 +575,8 @@
             )].sort((a, b) => a.localeCompare(b, "ja"));
 
             citySelect.disabled = false;
-            citySelect.innerHTML = '<option value="">市町村を選択してください</option>';
+            citySelect.innerHTML =
+                '<option value="">市町村を選択してください</option>';
 
             cities.forEach(city => {
                 const option = document.createElement("option");
@@ -419,24 +585,42 @@
                 citySelect.appendChild(option);
             });
 
-            list.innerHTML = '<p class="select-guide">市町村を選択してください。</p>';
+            list.innerHTML =
+                '<p class="select-guide">市町村を選択してください。</p>';
         }
 
+        /* =========================
+           ランダム店舗ボタン
+        ========================= */
         function initRandomStore() {
             const randomBtn = document.getElementById("randomStoreBtn");
 
-            if (!randomBtn || STORE_DATA.length === 0) return;
+            if (!randomBtn || STORE_DATA.length === 0) {
+                return;
+            }
 
             const randomIndex = Math.floor(Math.random() * STORE_DATA.length);
             const randomStore = STORE_DATA[randomIndex];
 
-            console.log("ランダム店舗:", randomStore.name, randomStore.url);
-
             randomBtn.addEventListener("click", function () {
-                window.open(randomStore.url, "_blank", "noopener,noreferrer");
+                window.dataLayer = window.dataLayer || [];
+
+                window.dataLayer.push({
+                    event: "store_search_method",
+                    search_method: "random"
+                });
+
+                window.open(
+                    randomStore.url,
+                    "_blank",
+                    "noopener,noreferrer"
+                );
             });
         }
 
+        /* =========================
+           店舗検索全体の初期化
+        ========================= */
         async function initStoreSearch() {
             const loading = document.getElementById("loadingStoreData");
             const prefSelect = document.getElementById("prefSelect");
@@ -446,9 +630,11 @@
 
             window.dataLayer = window.dataLayer || [];
 
-            // 現在地から探す：CSVの読み込み前に設定
+            /*
+             * 現在地から探すボタンの計測
+             */
             if (nearbyStoreBtn) {
-                nearbyStoreBtn.addEventListener("click", () => {
+                nearbyStoreBtn.addEventListener("click", function () {
                     window.dataLayer.push({
                         event: "store_search_method",
                         search_method: "nearby"
@@ -459,16 +645,26 @@
             try {
                 await loadStores();
 
-                if (loading) loading.remove();
+                if (loading) {
+                    loading.remove();
+                }
+
+                if (!prefSelect || !citySelect || !list) {
+                    throw new Error("店舗検索に必要なHTML要素がありません。");
+                }
 
                 initPrefSelect();
                 initRandomStore();
 
-                // 都道府県から探す
-                prefSelect.addEventListener("change", () => {
+                /*
+                 * 都道府県から探す：都道府県選択時
+                 */
+                prefSelect.addEventListener("change", function () {
                     updateCitySelect(prefSelect.value);
 
-                    if (!prefSelect.value) return;
+                    if (!prefSelect.value) {
+                        return;
+                    }
 
                     window.dataLayer.push({
                         event: "store_search_method",
@@ -476,25 +672,39 @@
                     });
                 });
 
-                citySelect.addEventListener("change", () => {
-                    if (!prefSelect.value || !citySelect.value) return;
-                    renderStores(prefSelect.value, citySelect.value);
+                /*
+                 * 市町村選択時に店舗一覧を表示
+                 */
+                citySelect.addEventListener("change", function () {
+                    if (!prefSelect.value || !citySelect.value) {
+                        return;
+                    }
+
+                    renderStores(
+                        prefSelect.value,
+                        citySelect.value
+                    );
                 });
 
             } catch (error) {
                 console.error(error);
 
-                if (loading) loading.remove();
+                if (loading) {
+                    loading.remove();
+                }
 
-                list.innerHTML = '<p class="select-guide">店舗データを読み込めませんでした。</p>';
+                if (list) {
+                    list.innerHTML =
+                        '<p class="select-guide">店舗データを読み込めませんでした。</p>';
+                }
             }
         }
 
+        /* =========================
+           実行
+        ========================= */
         initStoreSearch();
-
-
     </script>
-
     <!-- header.html/footer.html を読み込んでいる ========================= -->
     <script src="https://www.aeon.com/aeonapp/assets/js/index.js"></script>
     <script>
